@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IndiesFirst</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>IndiesFirst</h1>
+      <p>Putting Indie Authors in front of Readers</p>
+    </div>
+    <button id="authors-button" type="button">Authors</button>
+  </header>
+
+  <section class="panel">
+    <h2>Search Books</h2>
+    <input id="search-input" type="text" placeholder="Search by title, author, ISBN..." />
+    <button id="search-button" type="button">Search Books</button>
+    <div id="results"></div>
+  </section>
+
+  <div class="page-wrapper hidden">
+    <div id="authors-menu" class="authors-page">
+      <div class="page-front">
+        <h2>Find Your Book</h2>
+        <input id="author-search-input" type="text" placeholder="Title, author, or ISBN">
+        <input id="book-url" type="url" placeholder="Paste book URL">
+        <button id="find-button" type="button">Find Book</button>
+        <div id="authors-results"></div>
+      </div>
+
+      <div class="page-back">
+        <h2>Back Page</h2>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
