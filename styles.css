@@ -1,5 +1,5 @@
 :root {
-  --bg: #f5f6fa;
+  --bg: #f7f3eb;
   --panel: #ffffff;
   --text: #222;
   --muted: #666;
@@ -65,23 +65,31 @@ button:hover {
 }
 
 .panel {
-  max-width: 1000px;
+ max-width: 1400px;
   margin: 20px auto;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-  transform-origin: top center;
-  transform: rotateX(5deg);
-  opacity: 0.95;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
 }
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.search-column,
+.sidebar-column {
+  min-width: 0;
+}
+
 
 #search-input,
 #book-title,
 #author-name,
-#isbn,
-#book-url {
+#isbn {
   width: 100%;
   box-sizing: border-box;
   padding: 12px;
@@ -90,17 +98,30 @@ button:hover {
   border-radius: 6px;
 }
 
+#book-url {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+}
+
 #results {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
 
 .book-card {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
+ display: flex;
+  flex-direction: column;
+  gap: 0;
   padding: 15px;
   background: white;
   border-radius: 8px;
@@ -109,7 +130,6 @@ button:hover {
   border: 1px solid var(--border);
   overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
 
 .book-card:hover {
   transform: translateY(-2px);
@@ -145,7 +165,7 @@ button:hover {
   border-radius: 10px;
   padding: 12px;
   margin-top: 12px;
-  background: #f7fff9;
+  background: #f7f3eb;
 }
 
 .book-preview img {
