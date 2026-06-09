@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const searchButton = document.getElementById('search-button');
   const authorsButton = document.getElementById('authors-button');
-  const authorsWrapper = document.querySelector('.page-wrapper');
   const findButton = document.getElementById('find-button');
 
   if (searchButton) {
@@ -26,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (authorsButton && authorsWrapper) {
+  if (authorsButton) {
     authorsButton.addEventListener('click', () => {
-      authorsWrapper.classList.toggle('hidden');
+      alert('Coming Later');
     });
   }
 
@@ -71,7 +70,7 @@ function getTier(reviews) {
 
 function dedupeBooks(rows) {
   const seen = new Set();
-  return rows.filter((book) => {
+  return (rows || []).filter((book) => {
     const key = [
       normalizeIsbn(book.isbn || ''),
       normalizeText(book.title || ''),
@@ -98,42 +97,8 @@ function renderResults(rows) {
     const backCover = book.back_cover || book.back_cover_url || '';
     const blurb = book.description || book.blurb || '';
     const reviews = book.reviews_count ?? 0;
-	const tier = getTier(reviews);
-	const sourceUrl = book.source_url || book.url || '';
-
-return `
-  <div class="book-card ${tier}" data-index="${index}">
-    ${cover ? `<img src="${cover}" alt="${book.title || 'Front Cover'}" class="book-cover front-cover">` : ''}
-    ${backCover ? `<img src="${backCover}" alt="${book.title || 'Back Cover'}" class="book-cover back-cover">` : ''}
-    <div class="card-body">
-      <h3>${book.title || 'Untitled'}</h3>
-      <p><strong>Author:</strong> ${book.author || 'Unknown'}</p>
-      <p><strong>ISBN:</strong> ${book.isbn || 'N/A'}</p>
-      <p><strong>Reviews:</strong> ${reviews}</p>
-      <p class="summary">${blurb || 'No summary available'}</p>
-      <p><strong>Source:</strong> ${book.source || 'Verified Catalog'}</p>
-	   ${sourceUrl ? `<p><strong>URL:</strong> <a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">${sourceUrl}</a></p>` : ''}
-        </div>
-  </div>
-`;
-   
-	
-
-return `
-  <div class="book-card ${tier}" data-index="${index}">
-    ${cover ? `<img src="${cover}" alt="${book.title || 'Front Cover'}" class="book-cover front-cover">` : ''}
-    ${backCover ? `<img src="${backCover}" alt="${book.title || 'Back Cover'}" class="book-cover back-cover">` : ''}
-    <div class="card-body">
-      <h3>${book.title || 'Untitled'}</h3>
-      <p><strong>Author:</strong> ${book.author || 'Unknown'}</p>
-      <p><strong>ISBN:</strong> ${book.isbn || 'N/A'}</p>
-      <p><strong>Reviews:</strong> ${reviews}</p>
-      <p class="summary">${blurb || 'No summary available'}</p>
-      <p><strong>Source:</strong> ${book.source || 'Verified Catalog'}</p>
-      ${sourceUrl ? `<p><strong>URL:</strong> <a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">${sourceUrl}</a></p>` : ''}
-    </div>
-  </div>
-`;
+    const tier = getTier(reviews);
+    const sourceUrl = book.source_url || book.url || '';
 
     return `
       <div class="book-card ${tier}" data-index="${index}">
@@ -146,6 +111,7 @@ return `
           <p><strong>Reviews:</strong> ${reviews}</p>
           <p class="summary">${blurb || 'No summary available'}</p>
           <p><strong>Source:</strong> ${book.source || 'Verified Catalog'}</p>
+          ${sourceUrl ? `<p><strong>URL:</strong> <a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">${sourceUrl}</a></p>` : ''}
         </div>
       </div>
     `;
@@ -225,9 +191,9 @@ function openBookEditor(book) {
 
   const description = prompt('Description', book.description || book.blurb || '');
   if (description === null) return;
-  
-  const reviews_count = prompt('Reviews count', String(book.reviews_count ?? 0));
-if (reviews_count === null) return;
+
+  const reviewsCount = prompt('Reviews count', String(book.reviews_count ?? 0));
+  if (reviewsCount === null) return;
 
   const cover = prompt('Cover URL', book.cover || book.cover_url || book.image || '');
   if (cover === null) return;
@@ -241,7 +207,7 @@ if (reviews_count === null) return;
     author: author.trim(),
     isbn: isbn.trim(),
     description: description.trim(),
-	reviews_count: Number(reviews_count || 0),
+    reviews_count: Number(reviewsCount || 0),
     cover: cover.trim(),
     source_url: sourceUrl.trim()
   };
@@ -250,9 +216,9 @@ if (reviews_count === null) return;
 }
 
 function openBook(book) {
-  (
-    `Title: ${book.title}\n` +
-    `Author: ${book.author}\n` +
+  alert(
+    `Title: ${book.title || 'Untitled'}\n` +
+    `Author: ${book.author || 'Unknown'}\n` +
     `ISBN: ${book.isbn || 'N/A'}\n` +
     `Reviews: ${book.reviews_count ?? 0}\n` +
     `Source: ${book.source || 'Verified Catalog'}\n\n` +
@@ -335,12 +301,11 @@ async function addBookToDatabase(book) {
 
     alert(`"${payload.title || 'Book'}" saved to your database!`);
     resetAuthorsMenuForm();
-	clearAuthorsMenuState();
+    clearAuthorsMenuState();
 	
   } catch (err) {
     console.error('addBookToDatabase failed', err);
     alert('Failed to save book. Check console for details.');
-	
   }
 }
 
@@ -420,8 +385,6 @@ async function findAuthorTools() {
   }
 }
 
-
-
 async function loadInitialBooks() {
   if (!requireSupabase()) return;
 
@@ -443,7 +406,6 @@ async function loadInitialBooks() {
     console.error('loadInitialBooks failed', err);
   }
 }
-
 
 function clearAuthorsMenuState() {
   const authorSearchInput = document.getElementById('author-search-input');
