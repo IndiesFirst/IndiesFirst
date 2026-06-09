@@ -15,26 +15,27 @@
     <button id="authors-button" type="button">Authors</button>
   </header>
 
-  <section class="panel">
+  <section class="panel main-layout">
+  <div class="search-column">
     <h2>Search Books</h2>
-    <input id="search-input" type="text" placeholder="Search by title, author, ISBN..." />
+    <input id="search-input" type="text" placeholder="Search by title, author, genre..." />
     <button id="search-button" type="button">Search Books</button>
     <div id="results"></div>
-  </section>
+  </div>
 
-  <div class="page-wrapper hidden">
-    <div id="authors-menu" class="authors-page">
-      <div class="page-front">
-        <h2>Find Your Book</h2>
-        <input id="author-search-input" type="text" placeholder="Title, author, or ISBN">
-        <input id="book-url" type="url" placeholder="Paste book URL">
-        <button id="find-button" type="button">Find Book</button>
-        <div id="authors-results"></div>
-      </div>
+  <aside class="sidebar-column">
+    <h2>Add a Book</h2>
+    <label for="author-search-input">ISBN, Title, or Author</label>
+    <input id="author-search-input" type="text" placeholder="ISBN, title, or author">
 
-      <div class="page-back">
-        <h2>Back Page</h2>
-      </div>
+    <label for="book-url">Book URL</label>
+    <input id="book-url" type="url" placeholder="Paste book URL">
+
+    <button id="find-button" type="button">Find Book</button>
+    <section id="authors-results"></section>
+  </aside>
+</section>
+
     </div>
   </div>
 
