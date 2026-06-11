@@ -18,6 +18,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  width: 100%;
 }
 
 body {
@@ -26,10 +27,12 @@ body {
   color: var(--text);
   perspective: 1200px;
   perspective-origin: left center;
+  overflow-x: hidden;
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -50,6 +53,7 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   padding: 20px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
@@ -65,14 +69,16 @@ button:hover {
 }
 
 .panel {
- max-width: 1400px;
+  max-width: 1400px;
   margin: 20px auto;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
   opacity: 1;
+  box-shadow: var(--shadow);
 }
+
 .main-layout {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
@@ -85,19 +91,10 @@ button:hover {
   min-width: 0;
 }
 
-
 #search-input,
 #book-title,
 #author-name,
-#isbn {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
+#isbn,
 #book-url {
   width: 100%;
   max-width: 100%;
@@ -106,20 +103,17 @@ button:hover {
   margin: 8px 0;
   border: 1px solid #ccc;
   border-radius: 6px;
-  overflow-x: auto;
-  white-space: nowrap;
-}
 }
 
 #results {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-top: 16px;
 }
 
 .book-card {
- display: flex;
+  display: flex;
   flex-direction: column;
   gap: 0;
   padding: 15px;
@@ -130,6 +124,7 @@ button:hover {
   border: 1px solid var(--border);
   overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
 
 .book-card:hover {
   transform: translateY(-2px);
@@ -232,7 +227,6 @@ button:hover {
   background-color: var(--success-dark);
 }
 
-/* AUTHORS PAGE / FULLSCREEN BOOK EFFECT */
 #authors-button {
   position: fixed;
   top: 16px;
@@ -327,7 +321,7 @@ button:hover {
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
-  box-sizing; border-box;
+  box-sizing: border-box;
 }
 
 #book-editor-modal {
@@ -339,7 +333,6 @@ button:hover {
   padding: 20px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
   margin-top: 0;
-  
 }
 
 #book-editor-modal h2 {
@@ -417,5 +410,49 @@ button:hover {
 
   #book-editor-modal > div:last-child {
     display: grid;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+  }
+
+  .search-column {
+    flex: 0 0 auto;
+    min-width: 68vw;
+  }
+
+  .sidebar-column {
+    flex: 0 0 auto;
+    min-width: 72vw;
+  }
+
+  .panel {
+    max-width: none;
+    width: auto;
+  }
+
+  #results {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  #results {
+    grid-template-columns: 1fr;
+  }
+
+  .search-column,
+  .sidebar-column {
+    min-width: 86vw;
   }
 }
