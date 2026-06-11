@@ -411,6 +411,35 @@ button:hover {
 @media (max-width: 768px) {
   .main-layout {
     display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-column {
+    order: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .search-column {
+    order: 2;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #results {
+    grid-template-columns: 1fr;
+  }
+}
+
+  .main-layout {
+    display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
