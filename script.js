@@ -1,7 +1,12 @@
-const SUPABASE_URL = 'https://lytdiftjumipdqoolyen.supabase.co';
+const SUPABASE_URL = 'https://xbtqmiefkhaoncboiuvv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_7MiQ2ZRsAbPLQjKtvWafiw_aKO1RKe9';
 
 let sbClient = null;
+let pendingCoverImage = null;
+let coverFile = null;
+let coverDropzone = null;
+let coverPreview = null;
+let editingBookCover = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('SCRIPT LOADED');
@@ -16,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchButton = document.getElementById('search-button');
   const authorsButton = document.getElementById('authors-button');
   const findButton = document.getElementById('find-button');
+
+  coverFile = document.getElementById('cover-file');
+  coverDropzone = document.getElementById('cover-dropzone');
+  coverPreview = document.getElementById('cover-preview');
 
   if (searchButton) {
     searchButton.addEventListener('click', () => {
@@ -39,8 +48,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (coverFile) {
+    coverFile.addEventListener('change', () => {
+      if (coverFile.files?.[0]) handleCoverFile(coverFile.files[0]);
+    });
+  }
+
+  if (coverDropzone) {
+    coverDropzone.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items || [];
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) handleCoverFile(file);
+          break;
+        }
+      }
+    });
+
+    coverDropzone.addEventListener('dragover', (e) => e.preventDefault());
+
+    coverDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer?.files?.[0];
+      if (file) handleCoverFile(file);
+    });
+  }
+
   loadInitialBooks();
 });
+
+function handleCoverFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingCoverImage = reader.result;
+    if (coverPreview) {
+      coverPreview.src = reader.result;
+      coverPreview.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
 
 function requireSupabase() {
   if (!sbClient) {
@@ -112,13 +162,18 @@ function renderResults(rows) {
           <p class="summary">${blurb || 'No summary available'}</p>
           <p><strong>Source:</strong> ${book.source || 'Verified Catalog'}</p>
           ${sourceUrl ? `<p><strong>URL:</strong> <a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">${sourceUrl}</a></p>` : ''}
-        </div>
+          ${book.genre ? `<p><strong>Genre:</strong> ${book.genre}</p>` : ''}
+          ${book.keywords ? `<p><strong>Keywords:</strong> ${book.keywords}</p>` : ''}
+		</div>
       </div>
     `;
   }).join('');
 
   document.querySelectorAll('.book-card').forEach((card, index) => {
-    card.addEventListener('click', () => openBook(rows[index]));
+    card.addEventListener('click', () => {
+  const url = rows[index].source_url || rows[index].url || rows[index].link || '';
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+});
   });
 }
 
@@ -180,39 +235,107 @@ function renderAuthorsMenu(rows) {
 }
 
 function openBookEditor(book) {
-  const title = prompt('Title', book.title || '');
-  if (title === null) return;
+  editingBookCover = book.cover || book.cover_url || book.image || '';
+  pendingCoverImage = null;
 
-  const author = prompt('Author', book.author || '');
-  if (author === null) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'book-editor-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.inset = '0';
+  overlay.style.background = 'rgba(0,0,0,0.6)';
+  overlay.style.zIndex = '9999';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'flexstart';
+  overlay.style.justifyContent = 'center';
+  overlay.style.padding = '20px';
 
-  const isbn = prompt('ISBN', book.isbn || '');
-  if (isbn === null) return;
+  overlay.innerHTML = `
+    <div id="book-editor-modal" style="background:#fff;max-width:700px;width:100%;max-height:90vh;overflow:auto;border-radius:12px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.25);">
+      <h2>Edit Book</h2>
 
-  const description = prompt('Description', book.description || book.blurb || '');
-  if (description === null) return;
+      <div style="display:grid;gap:10px;">
+        <label>Title <input id="edit-title" type="text" value="${book.title || ''}"></label>
+        <label>Author <input id="edit-author" type="text" value="${book.author || ''}"></label>
+        <label>ISBN <input id="edit-isbn" type="text" value="${book.isbn || ''}"></label>
+        <label>Description <textarea id="edit-description" rows="4">${book.description || book.blurb || ''}</textarea></label>
+        <label>Reviews Count <input id="edit-reviews" type="number" value="${book.reviews_count ?? 0}"></label>
+        <label>Source URL <input id="edit-source-url" type="url" value="${book.source_url || book.url || book.link || ''}"></label>
+		<label>Genre <input id="edit-genre" type="text" value="${book.genre || ''}"></label>
+        <label>Keywords <textarea id="edit-keywords" rows="3">${book.keywords || ''}</textarea></label>
+      </div>
 
-  const reviewsCount = prompt('Reviews count', String(book.reviews_count ?? 0));
-  if (reviewsCount === null) return;
+      <div style="margin-top:16px;">
+        <img id="editor-cover-preview" alt="Cover preview" style="display:${editingBookCover ? 'block' : 'none'};max-width:180px;border-radius:8px;margin-bottom:10px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button type="button" id="editor-upload-btn">Upload Cover</button>
+          <input type="file" id="editor-upload-input" accept="image/*" hidden>
+          <button type="button" id="editor-save-btn">Save</button>
+          <button type="button" id="editor-cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
 
-  const cover = prompt('Cover URL', book.cover || book.cover_url || book.image || '');
-  if (cover === null) return;
+  document.body.appendChild(overlay);
 
-  const sourceUrl = prompt('Book Source URL', book.source_url || book.url || book.link || '');
-  if (sourceUrl === null) return;
+  const preview = overlay.querySelector('#editor-cover-preview');
+  const uploadBtn = overlay.querySelector('#editor-upload-btn');
+  const uploadInput = overlay.querySelector('#editor-upload-input');
+  const saveBtn = overlay.querySelector('#editor-save-btn');
+  const cancelBtn = overlay.querySelector('#editor-cancel-btn');
 
-  const updatedBook = {
-    ...book,
-    title: title.trim(),
-    author: author.trim(),
-    isbn: isbn.trim(),
-    description: description.trim(),
-    reviews_count: Number(reviewsCount || 0),
-    cover: cover.trim(),
-    source_url: sourceUrl.trim()
-  };
+  if (preview && editingBookCover) {
+    preview.src = editingBookCover;
+    preview.style.display = 'block';
+  }
 
-  addBookToDatabase(updatedBook);
+  if (uploadBtn && uploadInput && preview) {
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+    uploadInput.addEventListener('change', () => {
+      const file = uploadInput.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        pendingCoverImage = reader.result;
+        preview.src = reader.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      const updatedBook = {
+        ...book,
+        title: overlay.querySelector('#edit-title')?.value.trim() || '',
+        author: overlay.querySelector('#edit-author')?.value.trim() || '',
+        isbn: overlay.querySelector('#edit-isbn')?.value.trim() || '',
+        description: overlay.querySelector('#edit-description')?.value.trim() || '',
+        reviews_count: Number(overlay.querySelector('#edit-reviews')?.value || 0),
+        source_url: overlay.querySelector('#edit-source-url')?.value.trim() || '',
+		genre: overlay.querySelector('#edit-genre')?.value.trim() || '',
+        keywords: overlay.querySelector('#edit-keywords')?.value.trim() || ''
+      };
+
+      addBookToDatabase(updatedBook);
+      overlay.remove();
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      overlay.remove();
+      pendingCoverImage = null;
+    });
+  }
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+      pendingCoverImage = null;
+    }
+  });
 }
 
 function openBook(book) {
@@ -242,24 +365,32 @@ async function searchBooks() {
     const cleaned = normalizeIsbn(query);
     const isIsbn = cleaned.length === 10 || cleaned.length === 13;
 
-    const externalResponse = await sbClient.functions.invoke('book-search', {
+    let dbResponse;
+    if (isIsbn) {
+      dbResponse = await sbClient
+        .from('my_books')
+        .select('*')
+        .eq('isbn', cleaned);
+    } else {
+      dbResponse = await sbClient
+        .from('my_books')
+        .select('*')
+        .or(`title.ilike.%${query}%,author.ilike.%${query}%,genre.ilike.%${query}%,keywords.ilike.%${query}%`);
+	}
+	const externalResponse = await sbClient.functions.invoke('book-search', {
       body: isIsbn
         ? { isbn: cleaned, query, mode: 'isbn' }
         : { title: query, author: query, query, mode: 'text' }
     });
 
-    const dbResponse = isIsbn
-      ? await sbClient.from('my_books').select('*').eq('isbn', cleaned)
-      : await sbClient.from('my_books').select('*').or(`title.ilike.%${query}%,author.ilike.%${query}%`);
-
     const results = [];
-
-    if (!externalResponse.error && externalResponse.data?.results) {
-      results.push(...externalResponse.data.results);
-    }
 
     if (!dbResponse.error && dbResponse.data) {
       results.push(...dbResponse.data);
+    }
+
+    if (!externalResponse.error && externalResponse.data?.results) {
+      results.push(...externalResponse.data.results);
     }
 
     const finalResults = dedupeBooks(results);
@@ -269,6 +400,7 @@ async function searchBooks() {
     if (resultsEl) resultsEl.innerHTML = '<p>No books found.</p>';
   }
 }
+       
 
 function resetAuthorsMenuForm() {
   const authorSearchInput = document.getElementById('author-search-input');
@@ -285,12 +417,14 @@ async function addBookToDatabase(book) {
       title: book.title || null,
       author: book.author || null,
       isbn: book.isbn || null,
-      cover: book.cover || book.cover_url || null,
+      cover: pendingCoverImage || editingBookCover || book.cover || book.cover_url || book.image || null,
       description: book.description || book.blurb || null,
       reviews_count: Number(book.reviews_count || 0),
       source: book.source || 'User Edited',
-      source_url: book.source_url || book.url || null,
-      added_at: new Date().toISOString()
+      source_url: book.source_url || book.url || book.link || null,
+      added_at: new Date().toISOString(),
+	  genre: book.genre || null,
+      keywords: book.keywords || null,
     };
 
     const { error } = await sbClient
@@ -302,6 +436,9 @@ async function addBookToDatabase(book) {
     alert(`"${payload.title || 'Book'}" saved to your database!`);
     resetAuthorsMenuForm();
     clearAuthorsMenuState();
+    pendingCoverImage = null;
+    editingBookCover = null;
+	location.reload();
 	
   } catch (err) {
     console.error('addBookToDatabase failed', err);
@@ -385,6 +522,15 @@ async function findAuthorTools() {
   }
 }
 
+function shuffleArray(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 async function loadInitialBooks() {
   if (!requireSupabase()) return;
 
@@ -401,12 +547,14 @@ async function loadInitialBooks() {
 
     const apiRows = externalResponse.error ? [] : (externalResponse.data?.results || []).slice(0, 6);
 
-    renderResults(dedupeBooks([...(dbRows || []), ...apiRows]).slice(0, 12));
+        const shuffledDb = shuffleArray(dedupeBooks(dbRows || []));
+    const shuffledApi = shuffleArray(dedupeBooks(apiRows || []));
+
+    renderResults([...shuffledDb, ...shuffledApi].slice(0, 12));
   } catch (err) {
     console.error('loadInitialBooks failed', err);
   }
 }
-
 function clearAuthorsMenuState() {
   const authorSearchInput = document.getElementById('author-search-input');
   const bookUrlInput = document.getElementById('book-url');

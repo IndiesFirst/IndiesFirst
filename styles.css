@@ -307,3 +307,115 @@ button:hover {
 .hidden {
   display: none;
 }
+
+#cover-dropzone {
+  border: 2px dashed #bbb;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 8px;
+  background: #fafafa;
+  color: #666;
+}
+
+#book-editor-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  box-sizing; border-box;
+}
+
+#book-editor-modal {
+  background: #f7f3eb;
+  width: min(700px, 100%);
+  max-height: none;
+  overflow: auto;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  margin-top: 0;
+  
+}
+
+#book-editor-modal h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+#book-editor-modal label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+#book-editor-modal input,
+#book-editor-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+}
+
+#book-editor-modal textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+#book-editor-modal button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#editor-upload-btn {
+  background: #1f7aec;
+  color: #fff;
+}
+
+#editor-save-btn {
+  background: #22c55e;
+  color: #fff;
+}
+
+#editor-cancel-btn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+#editor-cover-preview {
+  max-width: 180px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+#book-editor-modal > div:last-child {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  #book-editor-modal {
+    padding: 16px;
+    width: 100%;
+  }
+
+  #book-editor-modal button {
+    width: 100%;
+  }
+
+  #book-editor-modal > div:last-child {
+    display: grid;
+  }
+}
